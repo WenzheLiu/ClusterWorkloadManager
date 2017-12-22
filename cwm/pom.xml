@@ -33,6 +33,11 @@
 
   <dependencies>
     <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <version>1.2.3</version>
+    </dependency>
+    <dependency>
       <groupId>com.typesafe.akka</groupId>
       <artifactId>akka-actor_${scalaBinaryVersion}</artifactId>
       <version>${akkaVersion}</version>
@@ -61,6 +66,11 @@
       <groupId>com.typesafe.akka</groupId>
       <artifactId>akka-multi-node-testkit_${scalaBinaryVersion}</artifactId>
       <version>${akkaVersion}</version>
+    </dependency>
+    <dependency>
+        <groupId>com.typesafe.akka</groupId>
+        <artifactId>akka-slf4j_${scalaBinaryVersion}</artifactId>
+        <version>2.5.2</version>
     </dependency>
     <dependency>
       <groupId>io.kamon</groupId>

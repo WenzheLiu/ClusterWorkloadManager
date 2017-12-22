@@ -11,7 +11,6 @@ import org.wenzhe.cwm.ConsoleAction.ConsoleCommand;
 public class Dispatcher extends AbstractActor {
 
   private ActorRef consoleListener = getContext().actorOf(Props.create(ConsoleListener.class), "consoleListener");
-  //private ActorRef commandParser = getContext().actorOf(Props.create(ConsoleListener.class), "commandParser");
 
   @Override
   public void preStart() {

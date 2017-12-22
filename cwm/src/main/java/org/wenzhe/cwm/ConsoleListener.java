@@ -15,13 +15,13 @@ public class ConsoleListener extends AbstractActor {
   public Receive createReceive() {
     return receiveBuilder()
             .matchEquals(LISTEN_TO_CONSOLE, evt -> {
-              System.out.println();
-              System.out.print("cwm > ");
-              Scanner in = new Scanner(System.in);
-              String cmd = in.nextLine().trim();
-              if (cmd.isEmpty()) {
-                return;
-              }
+              String cmd;
+              do {
+                System.out.println();
+                System.out.print("cwm > ");
+                Scanner in = new Scanner(System.in);
+                cmd = in.nextLine().trim();
+              } while (cmd.isEmpty());
               sender().tell(parse(cmd), getSelf());
             })
             .build();
@@ -31,7 +31,7 @@ public class ConsoleListener extends AbstractActor {
     switch (cmd) {
       case "status": return GET_STATUS;
       case "quit": case "exit": case "bye": return EXIT;
-      default: return NONE;
+      default: return new UnknownCommand(cmd);
     }
   }
 }
