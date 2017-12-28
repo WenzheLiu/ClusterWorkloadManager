@@ -1,11 +1,9 @@
 package org.wenzhe.cwm;
 
 import akka.actor.AbstractActor;
-import akka.actor.ActorRef;
 
 import java.util.Scanner;
 
-import static org.wenzhe.cwm.Command.Type.GET_STATUS;
 import static org.wenzhe.cwm.Command.Type.*;
 import static org.wenzhe.cwm.ConsoleAction.Type.LISTEN_TO_CONSOLE;
 
@@ -15,15 +13,16 @@ public class ConsoleListener extends AbstractActor {
   public Receive createReceive() {
     return receiveBuilder()
             .matchEquals(LISTEN_TO_CONSOLE, evt -> {
-              String cmd;
-              do {
-                System.out.println();
+              Command cmd = null;
+              while (cmd == null || cmd instanceof UnknownCommand) {
+                System.out.println(cmd == null ? "" : cmd);
                 System.out.print("cwm > ");
                 Scanner in = new Scanner(System.in);
-                cmd = in.nextLine().trim();
-              } while (cmd.isEmpty());
-              sender().tell(parse(cmd), getSelf());
+                cmd = parse(in.nextLine().trim());
+              }
+              sender().tell(cmd, getSelf());
             })
+            .matchEquals(String.class, System.out::println)
             .build();
   }
 

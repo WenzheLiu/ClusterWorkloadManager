@@ -6,7 +6,8 @@ public interface Command extends Serializable {
 
   enum Type implements Command {
     EXIT,
-    GET_STATUS
+    GET_STATUS,
+    GET_SERVERS,
   }
 
   class UnknownCommand implements Command {

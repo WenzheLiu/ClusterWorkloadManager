@@ -25,7 +25,6 @@ public class App {
     ActorSystem system = ActorSystem.create("ClusterSystem", config);
 
     // Create an actor that handles cluster domain events
-    system.actorOf(Props.create(SimpleClusterListener.class), "clusterListener");
     system.actorOf(Props.create(Dispatcher.class), "dispatcher");
   }
 }
