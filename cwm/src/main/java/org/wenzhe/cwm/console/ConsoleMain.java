@@ -1,10 +1,7 @@
 package org.wenzhe.cwm.console;
 
 import org.wenzhe.cwm.akka.AkkaClusterService;
-import org.wenzhe.cwm.domain.CommandLineJob;
-import org.wenzhe.cwm.domain.Job;
-import org.wenzhe.cwm.domain.JobDetail;
-import org.wenzhe.cwm.domain.Worker;
+import org.wenzhe.cwm.domain.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -30,11 +27,13 @@ public class ConsoleMain {
       String cmdType = it.next();
       List<String> hostPorts = new ArrayList<>(cmdParts.size());
       List<String> cmdArgs = new ArrayList<>(cmdParts.size());
+      boolean applyToAllAvailableServers = false;
       while (it.hasNext()) {
         String cmdPart = it.next();
         if (cmdPart.contains(":")) {
           hostPorts.add(cmdPart);
         } else {
+          applyToAllAvailableServers = cmdPart.equals("all");
           cmdArgs.add(cmdPart);
           break;
         }
@@ -44,11 +43,8 @@ public class ConsoleMain {
       }
 
       switch (cmdType) {
-        case "status":
-          System.out.println(clusterService.getServersStatus());
-          break;
         case "servers":
-          System.out.println(clusterService.getServers());
+          clusterService.getServers().stream().map(Server::toString).forEach(System.out::println);
           break;
         case "run":
           if (cmdArgs.isEmpty()) {
@@ -60,9 +56,18 @@ public class ConsoleMain {
           }
           break;
         case "workers":
-          clusterService.getWorkers().stream()
-          .map(Worker::toString)
-          .forEach(System.out::println);
+          if (hostPorts.isEmpty()) {
+            clusterService.getWorkers().stream()
+                    .map(Worker::toString)
+                    .forEach(System.out::println);
+          } else {
+            hostPorts.stream().forEach(hostPort -> {
+              System.out.printf("Get workers from Server %s: \n", hostPort);
+              clusterService.getWorkers(hostPort).stream()
+                      .map(Worker::toString)
+                      .forEach(System.out::println);
+            });
+          }
           break;
         case "jobs":
           if (hostPorts.isEmpty()) {
@@ -78,7 +83,7 @@ public class ConsoleMain {
             });
           }
           break;
-        case "quit": case "exit": case "bye":
+        case "quit": case "exit": case "bye": case "shutdown":
           clusterService.shutdown();
           exit = true;
           break;

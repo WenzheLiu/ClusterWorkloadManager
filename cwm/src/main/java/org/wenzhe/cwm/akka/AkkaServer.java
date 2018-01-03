@@ -1,12 +1,11 @@
 package org.wenzhe.cwm.akka;
 
+import akka.actor.Address;
 import akka.cluster.Member;
 import akka.cluster.MemberStatus;
+import org.wenzhe.cwm.domain.Server;
 
-import java.io.Serializable;
-import java.text.MessageFormat;
-
-public class AkkaServer implements Serializable {
+public class AkkaServer {
 
   private final Member clusterMember;
   private final boolean isReachable;
@@ -29,12 +28,31 @@ public class AkkaServer implements Serializable {
     return new AkkaServer(clusterMember, false);
   }
 
-  @Override
-  public String toString() {
-    return MessageFormat.format("{0} {1} {2}",
-            clusterMember.address().toString(),
-            clusterMember.status().toString(),
-            isReachable ? "reachable" : "unreachable"
-            );
+  private Server.Status toStatus() {
+    MemberStatus status = clusterMember.status();
+    if (status == MemberStatus.joining()) {
+      return Server.Status.JOINING;
+    } else if (status == MemberStatus.down()) {
+      return Server.Status.DOWN;
+    } else if (status == MemberStatus.removed()) {
+      return Server.Status.REMOVED;
+    } else if (status == MemberStatus.up()) {
+      return Server.Status.UP;
+    } else if (status == MemberStatus.exiting()) {
+      return Server.Status.EXITING;
+    } else if (status == MemberStatus.leaving()) {
+      return Server.Status.LEAVING;
+    } else if (status == MemberStatus.weaklyUp()) {
+      return Server.Status.WEAKLY_UP;
+    } else {
+      return Server.Status.UNKNOWN;
+    }
+  }
+
+  public Server toServer() {
+    Address address = clusterMember.address();
+    String host = address.host().isDefined() ? address.host().get() : "Unknown";
+    int port = address.port().isDefined() ? (Integer) address.port().get() : -1;
+    return new Server(host, port, toStatus(), isReachable);
   }
 }

@@ -2,18 +2,23 @@ package org.wenzhe.cwm.akka;
 
 import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
+import akka.actor.Address;
 import akka.actor.Props;
+import akka.cluster.Cluster;
+import akka.cluster.ClusterEvent;
+import akka.cluster.Member;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import org.wenzhe.cwm.domain.*;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class ManagerActor extends AbstractActor {
-
-  LoggingAdapter log = Logging.getLogger(getContext().system(), this);
 
   private static class WorkerWrapper {
     private final ActorRef workerActor;
@@ -69,6 +74,9 @@ public class ManagerActor extends AbstractActor {
 
   private final List<WorkerWrapper> workers;
   private final Map<Job, AkkaJobData> jobs = new HashMap<>();
+  private final Map<Address, AkkaServer> servers = new HashMap<>();
+  LoggingAdapter log = Logging.getLogger(getContext().system(), this);
+  Cluster cluster = Cluster.get(getContext().system());
 
   public ManagerActor(int workerCount) {
     workers = new ArrayList<>(workerCount);
@@ -82,8 +90,39 @@ public class ManagerActor extends AbstractActor {
   }
 
   @Override
+  public void preStart() {
+    cluster.subscribe(self(), ClusterEvent.initialStateAsEvents(),
+            ClusterEvent.MemberEvent.class, ClusterEvent.UnreachableMember.class, ClusterEvent.ReachableMember.class);
+  }
+
+  @Override
+  public void postStop() {
+    cluster.unsubscribe(self());
+  }
+
+  @Override
   public Receive createReceive() {
     return receiveBuilder()
+            .match(ClusterEvent.UnreachableMember.class, mUnreachable -> {
+              Member m = mUnreachable.member();
+              servers.put(m.address(), new AkkaServer(m).toUnReachable());
+              log.debug("Member detected as unreachable: {}", m);
+
+            })
+            .match(ClusterEvent.ReachableMember.class, reachable -> {
+              Member m = reachable.member();
+              servers.put(m.address(), new AkkaServer(m));
+              log.debug("Member detected as reachable: {}", m);
+            })
+            .match(ClusterEvent.MemberEvent.class, message -> {
+              Member m = message.member();
+              servers.put(m.address(), new AkkaServer(m));
+              log.debug("Member event {}: {}", message.getClass().getSimpleName(), m);
+            })
+            .matchEquals(Command.GET_SERVERS, evt -> {
+              List<Server> svs = servers.values().stream().map(AkkaServer::toServer).collect(Collectors.toList());
+              sender().tell(svs, self());
+            })
             .match(Job.class, job -> {
               jobs.put(job, new AkkaJobData());
               workers.stream().filter(worker -> worker.status() == Worker.Status.IDLE)

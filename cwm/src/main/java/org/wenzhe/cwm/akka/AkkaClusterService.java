@@ -1,24 +1,26 @@
 package org.wenzhe.cwm.akka;
 
-import akka.actor.*;
+import akka.actor.ActorRef;
+import akka.actor.ActorSelection;
+import akka.actor.ActorSystem;
+import akka.actor.Inbox;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import org.wenzhe.cwm.domain.Job;
 import org.wenzhe.cwm.domain.JobDetail;
-import org.wenzhe.cwm.domain.ServersStatus;
+import org.wenzhe.cwm.domain.Server;
 import org.wenzhe.cwm.domain.Worker;
+import org.wenzhe.cwm.service.ClusterService;
 import scala.concurrent.duration.Duration;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-public class AkkaClusterService {
+public class AkkaClusterService implements ClusterService {
 
   private final ActorSystem system;
-  private final ActorRef clusterListener;
   private final ActorRef manager;
 
   public AkkaClusterService(String port, int workerCount) {
@@ -30,9 +32,6 @@ public class AkkaClusterService {
     // Create an Akka system
     system = ActorSystem.create("ClusterSystem", config);
 
-    // Create an actor that handles cluster domain events
-    clusterListener = system.actorOf(Props.create(ClusterListener.class), "ClusterListener");
-
     manager = system.actorOf(ManagerActor.props(workerCount), "manager");
   }
 
@@ -40,12 +39,12 @@ public class AkkaClusterService {
     system.terminate();
   }
 
-  public ServersStatus getServersStatus() {
-    return new ServersStatus();
+  private String toAkkaAddress(String hostPort) {
+    return "akka.tcp://ClusterSystem@" + hostPort + "/user/manager";
   }
 
-  public AkkaServers getServers() {
-    return new AkkaServers((Collection<AkkaServer>) ask(clusterListener, Command.GET_SERVERS));
+  public List<Server> getServers() {
+    return (List<Server>) ask(manager, Command.GET_SERVERS);
   }
 
   public void runJob(Job job, String... hostPorts) {
@@ -58,16 +57,17 @@ public class AkkaClusterService {
     }
   }
 
-  private String toAkkaAddress(String hostPort) {
-    return "akka.tcp://ClusterSystem@" + hostPort + "/user/manager";
-  }
-
   public void runJob(Job job, List<String> hostPorts) {
     runJob(job, hostPorts.toArray(new String[hostPorts.size()]));
   }
 
   public List<Worker> getWorkers() {
     return (List<Worker>) ask(manager, Command.GET_WORKERS);
+  }
+
+  public List<Worker> getWorkers(String hostPort) {
+    ActorSelection remoteManager = system.actorSelection(toAkkaAddress(hostPort));
+    return (List<Worker>) ask(remoteManager, Command.GET_WORKERS);
   }
 
   private Inbox tell(ActorRef target, Object message) {

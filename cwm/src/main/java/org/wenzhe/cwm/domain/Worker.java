@@ -7,20 +7,12 @@ public class Worker implements Serializable {
     IDLE, WORKING
   }
 
-  private final String name;
-  private final Status status;
+  public final String name;
+  public final Status status;
 
   public Worker(String name, Status status) {
     this.name = name;
     this.status = status;
-  }
-
-  public Status getStatus() {
-    return status;
-  }
-
-  public String getName() {
-    return name;
   }
 
   @Override

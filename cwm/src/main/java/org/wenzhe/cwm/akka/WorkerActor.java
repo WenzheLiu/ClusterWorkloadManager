@@ -4,7 +4,6 @@ import akka.actor.AbstractActor;
 import org.wenzhe.cwm.domain.CommandLineJob;
 import org.wenzhe.cwm.domain.Job;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
 
 public class WorkerActor extends AbstractActor {

@@ -41,6 +41,7 @@
       <groupId>io.reactivex.rxjava2</groupId>
       <artifactId>rxjava</artifactId>
       <version>2.1.7</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>com.typesafe.akka</groupId>
@@ -61,16 +62,19 @@
       <groupId>com.typesafe.akka</groupId>
       <artifactId>akka-cluster-metrics_${scalaBinaryVersion}</artifactId>
       <version>${akkaVersion}</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>com.typesafe.akka</groupId>
       <artifactId>akka-cluster-tools_${scalaBinaryVersion}</artifactId>
       <version>${akkaVersion}</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>com.typesafe.akka</groupId>
       <artifactId>akka-multi-node-testkit_${scalaBinaryVersion}</artifactId>
       <version>${akkaVersion}</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
         <groupId>com.typesafe.akka</groupId>
@@ -81,6 +85,7 @@
       <groupId>io.kamon</groupId>
       <artifactId>sigar-loader</artifactId>
       <version>1.6.6-rev002</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
@@ -104,6 +109,40 @@
             <arg>-Xlint</arg>
           </compilerArgs>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>1.5</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <shadedArtifactAttached>true</shadedArtifactAttached>
+              <shadedClassifierName>allinone</shadedClassifierName>
+              <artifactSet>
+                <includes>
+                  <include>*:*</include>
+                </includes>
+              </artifactSet>
+              <transformers>
+                <transformer
+                        implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                  <resource>reference.conf</resource>
+                </transformer>
+                <transformer
+                        implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                  <manifestEntries>
+                    <Main-Class>org.wenzhe.cwm.console.ConsoleMain</Main-Class>
+                  </manifestEntries>
+                </transformer>
+              </transformers>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
