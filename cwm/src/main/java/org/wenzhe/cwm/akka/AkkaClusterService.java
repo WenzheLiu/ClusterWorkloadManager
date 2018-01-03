@@ -6,10 +6,7 @@ import akka.actor.ActorSystem;
 import akka.actor.Inbox;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
-import org.wenzhe.cwm.domain.Job;
-import org.wenzhe.cwm.domain.JobDetail;
-import org.wenzhe.cwm.domain.Server;
-import org.wenzhe.cwm.domain.Worker;
+import org.wenzhe.cwm.domain.*;
 import org.wenzhe.cwm.service.ClusterService;
 import scala.concurrent.duration.Duration;
 
@@ -23,7 +20,7 @@ public class AkkaClusterService implements ClusterService {
   private final ActorSystem system;
   private final ActorRef manager;
 
-  public AkkaClusterService(String port, int workerCount) {
+  public AkkaClusterService(int port, int workerCount) {
     // Override the configuration of the port
     Config config = ConfigFactory.parseString(
             "akka.remote.netty.tcp.port=" + port).withFallback(
@@ -35,19 +32,31 @@ public class AkkaClusterService implements ClusterService {
     manager = system.actorOf(ManagerActor.props(workerCount), "manager");
   }
 
-  public void shutdown() {
-    system.terminate();
+  public void shutdown(HostPort... hostPorts) {
+    if (hostPorts == null || hostPorts.length == 0) {
+      system.terminate();
+    } else {
+      Arrays.stream(hostPorts).map(this::toAkkaAddress)
+              .map(system::actorSelection)
+              .forEach(remoteManager -> tell(remoteManager, Command.SHUT_DOWN));
+    }
   }
 
-  private String toAkkaAddress(String hostPort) {
-    return "akka.tcp://ClusterSystem@" + hostPort + "/user/manager";
+  @Override
+  public void shutdown(List<HostPort> hostPorts) {
+    shutdown(hostPorts.toArray(new HostPort[hostPorts.size()]));
   }
 
+  private String toAkkaAddress(HostPort hostPort) {
+    return "akka.tcp://ClusterSystem@" + hostPort.toString() + "/user/manager";
+  }
+
+  @Override
   public List<Server> getServers() {
     return (List<Server>) ask(manager, Command.GET_SERVERS);
   }
 
-  public void runJob(Job job, String... hostPorts) {
+  public void runJob(Job job, HostPort... hostPorts) {
     if (hostPorts == null || hostPorts.length == 0) {
       tell(manager, job);
     } else {
@@ -57,15 +66,18 @@ public class AkkaClusterService implements ClusterService {
     }
   }
 
-  public void runJob(Job job, List<String> hostPorts) {
-    runJob(job, hostPorts.toArray(new String[hostPorts.size()]));
+  @Override
+  public void runJob(Job job, List<HostPort> hostPorts) {
+    runJob(job, hostPorts.toArray(new HostPort[hostPorts.size()]));
   }
 
+  @Override
   public List<Worker> getWorkers() {
     return (List<Worker>) ask(manager, Command.GET_WORKERS);
   }
 
-  public List<Worker> getWorkers(String hostPort) {
+  @Override
+  public List<Worker> getWorkers(HostPort hostPort) {
     ActorSelection remoteManager = system.actorSelection(toAkkaAddress(hostPort));
     return (List<Worker>) ask(remoteManager, Command.GET_WORKERS);
   }
@@ -100,11 +112,13 @@ public class AkkaClusterService implements ClusterService {
     }
   }
 
+  @Override
   public List<JobDetail> getJobs() {
     return (List<JobDetail>) ask(manager, Command.GET_JOBS);
   }
 
-  public List<JobDetail> getJobs(String hostPort) {
+  @Override
+  public List<JobDetail> getJobs(HostPort hostPort) {
     ActorSelection remoteManager = system.actorSelection(toAkkaAddress(hostPort));
     return (List<JobDetail>) ask(remoteManager, Command.GET_JOBS);
   }

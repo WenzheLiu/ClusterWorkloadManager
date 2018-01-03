@@ -1,15 +1,13 @@
 package org.wenzhe.cwm.akka;
 
-import akka.actor.AbstractActor;
-import akka.actor.ActorRef;
-import akka.actor.Address;
-import akka.actor.Props;
+import akka.actor.*;
 import akka.cluster.Cluster;
 import akka.cluster.ClusterEvent;
 import akka.cluster.Member;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import org.wenzhe.cwm.domain.*;
+import scala.concurrent.Future;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -153,6 +151,11 @@ public class ManagerActor extends AbstractActor {
             })
             .matchEquals(Command.GET_JOBS, cmd -> {
               sender().tell(getJobDetails(), self());
+            })
+            .matchEquals(Command.SHUT_DOWN, cmd -> {
+              Future<Terminated> future = getContext().getSystem().terminate();
+              future.wait();
+              System.exit(0);
             })
             .build();
   }

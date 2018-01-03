@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 public class ConsoleMain {
 
   public static void main(String[] args) {
-    String port = args[0];
+    int port = Integer.parseInt(args[0]);
     int workerCount = Integer.parseInt(args[1]);
     AkkaClusterService clusterService = new AkkaClusterService(port, workerCount);
     boolean exit = false;
@@ -25,13 +25,13 @@ public class ConsoleMain {
               .collect(Collectors.toList());
       Iterator<String> it = cmdParts.iterator();
       String cmdType = it.next();
-      List<String> hostPorts = new ArrayList<>(cmdParts.size());
+      List<HostPort> hostPorts = new ArrayList<>(cmdParts.size());
       List<String> cmdArgs = new ArrayList<>(cmdParts.size());
       boolean applyToAllAvailableServers = false;
       while (it.hasNext()) {
         String cmdPart = it.next();
         if (cmdPart.contains(":")) {
-          hostPorts.add(cmdPart);
+          hostPorts.add(HostPort.from(cmdPart));
         } else {
           applyToAllAvailableServers = cmdPart.equals("all");
           cmdArgs.add(cmdPart);
@@ -84,8 +84,12 @@ public class ConsoleMain {
           }
           break;
         case "quit": case "exit": case "bye": case "shutdown":
-          clusterService.shutdown();
-          exit = true;
+          if (hostPorts.isEmpty()) {
+            clusterService.shutdown();
+            exit = true;
+          } else {
+            clusterService.shutdown(hostPorts);
+          }
           break;
         default:
           System.out.printf("Unknown command: %s\n", cmd);
