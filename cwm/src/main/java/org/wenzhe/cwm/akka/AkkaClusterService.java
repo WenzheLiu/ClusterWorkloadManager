@@ -34,7 +34,7 @@ public class AkkaClusterService implements ClusterService {
 
   public void shutdown(HostPort... hostPorts) {
     if (hostPorts == null || hostPorts.length == 0) {
-      system.terminate();
+      tell(manager, Command.SHUT_DOWN);
     } else {
       Arrays.stream(hostPorts).map(this::toAkkaAddress)
               .map(system::actorSelection)

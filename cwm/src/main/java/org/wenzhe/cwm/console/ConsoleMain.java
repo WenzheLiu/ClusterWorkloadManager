@@ -2,16 +2,14 @@ package org.wenzhe.cwm.console;
 
 import org.wenzhe.cwm.akka.AkkaClusterService;
 import org.wenzhe.cwm.domain.*;
+import org.wenzhe.cwm.service.ClusterService;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class ConsoleMain {
 
-  public static void main(String[] args) {
-    int port = Integer.parseInt(args[0]);
-    int workerCount = Integer.parseInt(args[1]);
-    AkkaClusterService clusterService = new AkkaClusterService(port, workerCount);
+  public static void run(ClusterService clusterService) {
     boolean exit = false;
     while (!exit) {
       System.out.print("crms> ");
@@ -84,11 +82,9 @@ public class ConsoleMain {
           }
           break;
         case "quit": case "exit": case "bye": case "shutdown":
+          clusterService.shutdown(hostPorts);
           if (hostPorts.isEmpty()) {
-            clusterService.shutdown();
-            exit = true;
-          } else {
-            clusterService.shutdown(hostPorts);
+            System.exit(0);
           }
           break;
         default:
@@ -96,5 +92,12 @@ public class ConsoleMain {
           break;
       }
     }
+  }
+
+  public static void main(String[] args) {
+    int port = Integer.parseInt(args[0]);
+    int workerCount = Integer.parseInt(args[1]);
+    AkkaClusterService clusterService = new AkkaClusterService(port, workerCount);
+    run(clusterService);
   }
 }
