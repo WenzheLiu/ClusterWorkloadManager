@@ -1,3 +1,9 @@
+# Build
+Build the project by `build.sh`:
+```
+bash build.sh
+```
+
 # Run in command line
 ## locally across processes
 ```
@@ -60,4 +66,13 @@ import time
 
 time.sleep(30)
 
+# Angular Web UI
+## build
+```
+ng build
+```
+## update Angular Web UI code to the war file
+```
+bash add_to_war.sh
+```
 
