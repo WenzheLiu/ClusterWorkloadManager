@@ -4,6 +4,8 @@
     <th>Port</th>
     <th>Status</th>
     <th>Reachable</th>
+    <th>Slots</th>
+    <th>Jobs</th>
   </tr>
 
   <tr *ngFor="let server of (servers$ | async)">
@@ -11,5 +13,8 @@
     <td>{{server.port}}</td>
     <td>{{server.status}}</td>
     <td>{{server.isReachable}}</td>
+    <td><a [routerLink]='[server.host, server.port, "workers"]'>Slots</a></td>
+    <td><a [routerLink]='[server.host, server.port, "jobs"]'>Jobs</a></td>
   </tr>
 </table>
+<router-outlet></router-outlet>
