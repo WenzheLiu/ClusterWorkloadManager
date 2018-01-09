@@ -3,6 +3,7 @@ import { NgModule } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { HttpModule } from '@angular/http';
 import { FormsModule } from '@angular/forms';
+import { APP_BASE_HREF, LocationStrategy, HashLocationStrategy } from '@angular/common';
 
 import { AppComponent } from './app.component';
 import { ServersComponent } from './servers/servers.component';
@@ -18,9 +19,13 @@ import { ConfigService } from './service/config.service';
     ServersComponent
   ],
   imports: [
-    BrowserModule, HttpModule, FormsModule, RouterModule.forRoot(AppRoutes)
+    BrowserModule, HttpModule, FormsModule,
+    RouterModule.forRoot(AppRoutes)
   ],
-  providers: [ConfigService, CwmService],
+  providers: [ConfigService, CwmService,
+    { provide: APP_BASE_HREF, useValue: '/' },
+    // { provide: LocationStrategy, useClass: HashLocationStrategy } // for pre-HTML5
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
