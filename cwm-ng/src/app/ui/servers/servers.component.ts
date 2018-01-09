@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import { CwmService } from '../service/cwm.service';
+import { CwmService } from '../../service/cwm.service';
 import { Observable } from 'rxjs/Observable';
-import { Server } from '../model/server';
+import { Server } from '../../model/server';
 
 @Component({
   selector: 'app-servers',

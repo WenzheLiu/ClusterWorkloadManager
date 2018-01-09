@@ -6,17 +6,21 @@ import { FormsModule } from '@angular/forms';
 import { APP_BASE_HREF, LocationStrategy, HashLocationStrategy } from '@angular/common';
 
 import { AppComponent } from './app.component';
-import { ServersComponent } from './servers/servers.component';
+import { ServersComponent } from './ui/servers/servers.component';
 import { AppRoutes } from './app.route';
 
 import './utils/rxjs-operators';
 import { CwmService } from './service/cwm.service';
 import { ConfigService } from './service/config.service';
+import { WorkersComponent } from './ui/workers/workers.component';
+import { JobsComponent } from './ui/jobs/jobs.component';
 
 @NgModule({
   declarations: [
     AppComponent,
-    ServersComponent
+    ServersComponent,
+    WorkersComponent,
+    JobsComponent
   ],
   imports: [
     BrowserModule, HttpModule, FormsModule,
