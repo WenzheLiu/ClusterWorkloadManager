@@ -1,3 +1,12 @@
-<p>
-  workers works! {{host}}:{{port}}
-</p>
+<h2>Workers for {{host}}:{{port}}</h2>
+<table border="1">
+  <tr>
+    <th>Name</th>
+    <th>Status</th>
+  </tr>
+
+  <tr *ngFor="let worker of (workers$ | async)">
+    <td>{{worker.name}}</td>
+    <td>{{worker.status}}</td>
+  </tr>
+</table>

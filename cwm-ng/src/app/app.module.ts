@@ -14,13 +14,17 @@ import { CwmService } from './service/cwm.service';
 import { ConfigService } from './service/config.service';
 import { WorkersComponent } from './ui/workers/workers.component';
 import { JobsComponent } from './ui/jobs/jobs.component';
+import { JoinPipe } from './pipes/join.pipe';
+import { DatetimePipe } from './pipes/datetime.pipe';
 
 @NgModule({
   declarations: [
     AppComponent,
     ServersComponent,
     WorkersComponent,
-    JobsComponent
+    JobsComponent,
+    JoinPipe,
+    DatetimePipe
   ],
   imports: [
     BrowserModule, HttpModule, FormsModule,
