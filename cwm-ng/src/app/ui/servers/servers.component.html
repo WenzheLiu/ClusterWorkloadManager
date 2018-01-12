@@ -1,5 +1,6 @@
 <table border="1">
   <tr>
+    <th></th>
     <th>Host</th>
     <th>Port</th>
     <th>Status</th>
@@ -8,7 +9,8 @@
     <th>Jobs</th>
   </tr>
 
-  <tr *ngFor="let server of (servers$ | async)">
+  <tr *ngFor="let server of (servers$ | async); let i=index" [class.unreachable]="!server.isReachable">
+    <td><input type="checkbox" (click)="onClickCheckBox(i, value)"></td>
     <td>{{server.host}}</td>
     <td>{{server.port}}</td>
     <td>{{server.status}}</td>

@@ -11,13 +11,18 @@ import { Server } from '../../model/server';
 export class ServersComponent implements OnInit {
 
   servers$: Observable<Server[]>;
+  selected: Boolean[];
 
   constructor(private cwmService: CwmService) {
     this.servers$ = cwmService.servers();
-    this.servers$.subscribe(servers => console.log(servers));
+    this.servers$.subscribe(servers => this.selected = new Boolean[servers.length]);
   }
 
   ngOnInit() {
   }
 
+  onClickCheckBox(index: number, value: boolean) {
+    this.selected[index] = value;
+    console.log(this.selected);
+  }
 }

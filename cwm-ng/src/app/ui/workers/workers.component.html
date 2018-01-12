@@ -5,7 +5,7 @@
     <th>Status</th>
   </tr>
 
-  <tr *ngFor="let worker of (workers$ | async)">
+  <tr *ngFor="let worker of (workers$ | async)" [class.buzy]="worker.status === 'WORKING'">
     <td>{{worker.name}}</td>
     <td>{{worker.status}}</td>
   </tr>
