@@ -1,8 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Input } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CwmService } from '../../service/cwm.service';
 import { Observable } from 'rxjs/Observable';
 import { JobDetail } from '../../model/job.detail';
+import { Server } from '../../model/server';
 
 @Component({
   selector: 'app-jobs',
@@ -11,17 +12,8 @@ import { JobDetail } from '../../model/job.detail';
 })
 export class JobsComponent implements OnInit {
 
-  host: string;
-  port: number;
-  jobDetails$: Observable<JobDetail[]>;
-
-  constructor(private route: ActivatedRoute, private cwmService: CwmService) {
-    route.params.subscribe(params => {
-      this.host = params['host'];
-      this.port = params['port'];
-      this.jobDetails$ = cwmService.jobs(this.host, this.port);
-    });
-  }
+  @Input() server: Server;
+  @Input() jobs: JobDetail[];
 
   ngOnInit() {
   }

@@ -34,14 +34,24 @@ export class CwmService {
   }
 
   runJob(job: string[], servers: Server[]) {
+    if (job.length === 0 || servers.length === 0) {
+      return;
+    }
+    const serverHostPorts = servers.map(server => `${server.host}:${server.port}`);
+    console.log(`run job ${job} on servers ${serverHostPorts}`);
     this.post('run', {
       job: job,
-      hostPorts: servers.map(server => `${server.host}:${server.port}`)
+      hostPorts: serverHostPorts
     }).subscribe();
   }
 
   shutdown(servers: Server[]) {
-    this.post('shutdown', servers.map(server => `${server.host}:${server.port}`))
+    if (servers.length === 0) {
+      return;
+    }
+    const hostPorts = servers.map(server => `${server.host}:${server.port}`);
+    console.log(`shutdown ${hostPorts}`);
+    this.post('shutdown', hostPorts)
     .subscribe();
   }
 

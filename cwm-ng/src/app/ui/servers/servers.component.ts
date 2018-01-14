@@ -1,9 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { CwmService } from '../../service/cwm.service';
 import { Observable } from 'rxjs/Observable';
+import { Subscription } from 'rxjs/Subscription';
 import { Server } from '../../model/server';
 import { Worker } from '../../model/worker';
-import { Job } from '../../model/job';
 import { JobDetail } from '../../model/job.detail';
 
 @Component({
@@ -14,57 +14,57 @@ import { JobDetail } from '../../model/job.detail';
 export class ServersComponent implements OnInit {
 
   servers: Server[] = [];
-  selected: boolean[] = [];
+  selectedServer = new Set<string>();
   serverWorkersMap: {[key: string]: Worker[]} = {};
   serverJobsMap: {[key: string]: JobDetail[]} = {};
+  selectedServerForWorkers?: Server;
+  selectedServerForJobs?: Server;
   jobCommand = '';
+  autoRefresh = false;
+  intervalSecondForRefresh = 5;
+  refreshTimer$?: Subscription;
 
   constructor(private cwmService: CwmService) {
-    cwmService.servers().subscribe(servers => {
-      this.servers = servers;
-      this.selected = servers.map(s => false);
-
-      this.servers.forEach((server, index, array) => {
-        this.cwmService.workers(server.host, server.port)
-        .subscribe(workers => {
-          this.serverWorkersMap[this.serverHostPort(server)] = workers;
-        });
-        this.cwmService.jobs(server.host, server.port)
-        .subscribe(jobs => {
-          this.serverJobsMap[this.serverHostPort(server)] = jobs;
-        });
-      });
-    });
   }
 
   ngOnInit() {
+    this.onRefresh();
   }
 
   private serverHostPort(server: Server): string {
     return `${server.host}:${server.port}`;
   }
 
+  private reachableServers(): Server[] {
+    return this.servers.filter(server => server.isReachable);
+  }
+
   allSelected(): boolean {
-    if (this.selected) {
-      return this.selected.every(sel => sel === true);
+    return this.selectedServer.size === this.reachableServers().length;
+  }
+
+  onSelectServer(server: Server, event) {
+    if (event.target.checked) {
+      this.selectedServer.add(this.serverHostPort(server));
     } else {
-      return false;
+      this.selectedServer.delete(this.serverHostPort(server));
     }
   }
 
-  onSelectServer(index: number, event) {
-    this.selected[index] = event.target.checked;
+  isServerSelected(server: Server): boolean {
+    return this.selectedServer.has(this.serverHostPort(server));
   }
 
   onSelectAllServers(event) {
-    this.selected.fill(event.target.checked);
+    this.selectedServer.clear();
+    if (event.target.checked) {
+      this.reachableServers().map(server => this.serverHostPort(server))
+      .forEach(s => this.selectedServer.add(s));
+    }
   }
 
   onRunJob() {
     const job = this.jobCommand.split(' ').filter(str => str.length > 0);
-    if (job.length === 0) {
-      return;
-    }
     this.cwmService.runJob(job, this.selectedServers());
   }
 
@@ -73,14 +73,7 @@ export class ServersComponent implements OnInit {
   }
 
   private selectedServers(): Server[] {
-    const selectedServs: Server[] = [];
-    for (let i = 0; i < this.servers.length; i++) {
-      if (this.selected[i]) {
-        console.log(this.servers[i]);
-        selectedServs.push(this.servers[i]);
-      }
-    }
-    return selectedServs;
+    return this.servers.filter(server => this.selectedServer.has(this.serverHostPort(server)));
   }
 
   workerCount(server: Server): number {
@@ -93,5 +86,81 @@ export class ServersComponent implements OnInit {
     const hostPort = this.serverHostPort(server);
     const jobs = this.serverJobsMap[hostPort];
     return jobs ? jobs.length : 0;
+  }
+
+  onClickWorkerCount(server: Server) {
+    this.selectedServerForJobs = undefined;
+    this.selectedServerForWorkers = server;
+  }
+
+  onClickJobCount(server: Server) {
+    this.selectedServerForWorkers = undefined;
+    this.selectedServerForJobs = server;
+  }
+
+  workersToShow(): Worker[] {
+    if (!this.selectedServerForWorkers) {
+      return [];
+    }
+    return this.serverWorkersMap[this.serverHostPort(this.selectedServerForWorkers)];
+  }
+
+  jobsToShow(): JobDetail[] {
+    if (!this.selectedServerForJobs) {
+      return [];
+    }
+    return this.serverJobsMap[this.serverHostPort(this.selectedServerForJobs)];
+  }
+
+  onRefresh() {
+    console.log('refresh');
+    this.cwmService.servers().subscribe(servers => {
+      this.servers = servers;
+      this.servers.filter(server => !server.isReachable)
+      .forEach(server => {
+        const serverHostPort = this.serverHostPort(server);
+        if (this.selectedServer.has(serverHostPort)) {
+          this.selectedServer.delete(serverHostPort);
+        }
+      });
+      this.reachableServers().forEach(server => {
+        this.cwmService.workers(server.host, server.port)
+        .subscribe(workers => {
+          this.serverWorkersMap[this.serverHostPort(server)] = workers;
+        });
+        this.cwmService.jobs(server.host, server.port)
+        .subscribe(jobs => {
+          this.serverJobsMap[this.serverHostPort(server)] = jobs;
+        });
+      });
+    });
+  }
+
+  onClickAutoRefresh(event) {
+    if (event.target.checked) {
+      this.startTimer();
+    } else {
+      this.stopTimer();
+    }
+  }
+
+  private startTimer() {
+    this.stopTimer();
+    if (this.intervalSecondForRefresh > 0) {
+      console.log(`startTimer per ${this.intervalSecondForRefresh} seconds`);
+      this.refreshTimer$ = Observable.interval(this.intervalSecondForRefresh * 1000)
+      .subscribe(evt => this.onRefresh());
+    }
+  }
+
+  private stopTimer() {
+    console.log('stopTimer');
+    if (this.refreshTimer$ && !this.refreshTimer$.closed) {
+      this.refreshTimer$.unsubscribe();
+    }
+  }
+
+  onIntervalSecondForRefreshChanged(event) {
+    this.startTimer();
   }
 }
