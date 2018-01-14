@@ -5,3 +5,7 @@
 .fail {
   color: red
 }
+
+.running {
+  color: blue
+}

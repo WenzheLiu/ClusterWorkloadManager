@@ -1,6 +1,6 @@
 <table border="1">
   <tr>
-    <th></th>
+    <th><input type="checkbox" [checked]="allSelected()" (click)="onSelectAllServers($event)"></th>
     <th>Host</th>
     <th>Port</th>
     <th>Status</th>
@@ -9,8 +9,8 @@
     <th>Jobs</th>
   </tr>
 
-  <tr *ngFor="let server of (servers$ | async); let i=index" [class.unreachable]="!server.isReachable">
-    <td><input type="checkbox" (click)="onClickCheckBox(i, value)"></td>
+  <tr *ngFor="let server of servers; let i=index" [class.unreachable]="!server.isReachable">
+    <td><input type="checkbox" [checked]="selected[i]" (click)="onSelectServer(i, $event)"></td>
     <td>{{server.host}}</td>
     <td>{{server.port}}</td>
     <td>{{server.status}}</td>
@@ -19,4 +19,15 @@
     <td><a [routerLink]='[server.host, server.port, "jobs"]'>Jobs</a></td>
   </tr>
 </table>
+<div>
+  <p>For the selected server:</p>
+  <div>
+    <button (click)="onRunJob()">Run Job</button>
+    <input type="text" [(ngModel)]="jobCommand">
+  </div>
+  <div>
+    <br>
+    <button (click)="onShutdown()">Shutdown</button>
+  </div>
+</div>
 <router-outlet></router-outlet>

@@ -29,6 +29,8 @@ export class JobsComponent implements OnInit {
   jobClass(jobDetail: JobDetail): any {
     return {
       'done': jobDetail.status === 'DONE',
-      'fail': jobDetail.status === 'FAIL'};
+      'fail': jobDetail.status === 'FAIL',
+      'running': jobDetail.status === 'RUNNING'
+    };
   }
 }

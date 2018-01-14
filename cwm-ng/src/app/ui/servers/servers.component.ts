@@ -10,19 +10,56 @@ import { Server } from '../../model/server';
 })
 export class ServersComponent implements OnInit {
 
-  servers$: Observable<Server[]>;
-  selected: Boolean[];
+  servers: Server[] = [];
+  selected: boolean[] = [];
+  jobCommand = '';
 
   constructor(private cwmService: CwmService) {
-    this.servers$ = cwmService.servers();
-    this.servers$.subscribe(servers => this.selected = new Boolean[servers.length]);
+    cwmService.servers().subscribe(servers => {
+      this.servers = servers;
+      this.selected = servers.map(s => false);
+    });
   }
 
   ngOnInit() {
   }
 
-  onClickCheckBox(index: number, value: boolean) {
-    this.selected[index] = value;
-    console.log(this.selected);
+  allSelected(): boolean {
+    if (this.selected) {
+      return this.selected.every(sel => sel === true);
+    } else {
+      return false;
+    }
+  }
+
+  onSelectServer(index: number, event) {
+    this.selected[index] = event.target.checked;
+  }
+
+  onSelectAllServers(event) {
+    this.selected.fill(event.target.checked);
+  }
+
+  onRunJob() {
+    const job = this.jobCommand.split(' ').filter(str => str.length > 0);
+    if (job.length === 0) {
+      return;
+    }
+    this.cwmService.runJob(job, this.selectedServers());
+  }
+
+  onShutdown() {
+    this.cwmService.shutdown(this.selectedServers());
+  }
+
+  private selectedServers(): Server[] {
+    const selectedServs: Server[] = [];
+    for (let i = 0; i < this.servers.length; i++) {
+      if (this.selected[i]) {
+        console.log(this.servers[i]);
+        selectedServs.push(this.servers[i]);
+      }
+    }
+    return selectedServs;
   }
 }

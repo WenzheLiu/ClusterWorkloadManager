@@ -9,7 +9,7 @@ import { JobDetail } from '../model/job.detail';
 @Injectable()
 export class CwmService {
 
-  private headers = new Headers({
+  private readonly headers = new Headers({
     'Content-Type': 'application/json'
   });
 
@@ -30,6 +30,25 @@ export class CwmService {
     return this.get('jobs', {
       host: host,
       port: port
+    });
+  }
+
+  runJob(job: string[], servers: Server[]) {
+    this.post('run', {
+      job: job,
+      hostPorts: servers.map(server => `${server.host}:${server.port}`)
+    }).subscribe();
+  }
+
+  shutdown(servers: Server[]) {
+    this.post('shutdown', servers.map(server => `${server.host}:${server.port}`))
+    .subscribe();
+  }
+
+  private post(action: string, data: any = {}, params: any = {}): Observable<any> {
+    return this.http.post(this.config.uri(action), data, {
+      headers: this.headers,
+      params: params
     });
   }
 

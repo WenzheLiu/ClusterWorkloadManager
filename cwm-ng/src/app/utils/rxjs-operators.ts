@@ -11,3 +11,5 @@ import 'rxjs/add/operator/toPromise';
 import 'rxjs/add/operator/startWith';
 import 'rxjs/add/operator/bufferCount';
 import 'rxjs/add/operator/bufferTime';
+import 'rxjs/add/operator/filter';
+import 'rxjs/add/operator/zip';
