@@ -2,6 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { CwmService } from '../../service/cwm.service';
 import { Observable } from 'rxjs/Observable';
 import { Server } from '../../model/server';
+import { Worker } from '../../model/worker';
+import { Job } from '../../model/job';
+import { JobDetail } from '../../model/job.detail';
 
 @Component({
   selector: 'app-servers',
@@ -12,16 +15,33 @@ export class ServersComponent implements OnInit {
 
   servers: Server[] = [];
   selected: boolean[] = [];
+  serverWorkersMap: {[key: string]: Worker[]} = {};
+  serverJobsMap: {[key: string]: JobDetail[]} = {};
   jobCommand = '';
 
   constructor(private cwmService: CwmService) {
     cwmService.servers().subscribe(servers => {
       this.servers = servers;
       this.selected = servers.map(s => false);
+
+      this.servers.forEach((server, index, array) => {
+        this.cwmService.workers(server.host, server.port)
+        .subscribe(workers => {
+          this.serverWorkersMap[this.serverHostPort(server)] = workers;
+        });
+        this.cwmService.jobs(server.host, server.port)
+        .subscribe(jobs => {
+          this.serverJobsMap[this.serverHostPort(server)] = jobs;
+        });
+      });
     });
   }
 
   ngOnInit() {
+  }
+
+  private serverHostPort(server: Server): string {
+    return `${server.host}:${server.port}`;
   }
 
   allSelected(): boolean {
@@ -61,5 +81,17 @@ export class ServersComponent implements OnInit {
       }
     }
     return selectedServs;
+  }
+
+  workerCount(server: Server): number {
+    const hostPort = this.serverHostPort(server);
+    const workers = this.serverWorkersMap[hostPort];
+    return workers ? workers.length : 0;
+  }
+
+  jobCount(server: Server): number {
+    const hostPort = this.serverHostPort(server);
+    const jobs = this.serverJobsMap[hostPort];
+    return jobs ? jobs.length : 0;
   }
 }

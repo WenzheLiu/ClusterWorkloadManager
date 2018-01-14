@@ -12,7 +12,7 @@ import { Worker } from '../../model/worker';
 export class WorkersComponent implements OnInit {
 
   host: string;
-  port: string;
+  port: number;
   workers$: Observable<Worker[]>;
 
   constructor(private route: ActivatedRoute, private cwmService: CwmService) {

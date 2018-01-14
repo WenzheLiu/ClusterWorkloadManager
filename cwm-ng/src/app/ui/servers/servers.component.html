@@ -15,8 +15,8 @@
     <td>{{server.port}}</td>
     <td>{{server.status}}</td>
     <td>{{server.isReachable}}</td>
-    <td><a [routerLink]='[server.host, server.port, "workers"]'>Workers</a></td>
-    <td><a [routerLink]='[server.host, server.port, "jobs"]'>Jobs</a></td>
+    <td><a [routerLink]='[server.host, server.port, "workers"]'>{{workerCount(server)}}</a></td>
+    <td><a [routerLink]='[server.host, server.port, "jobs"]'>{{jobCount(server)}}</a></td>
   </tr>
 </table>
 <div>

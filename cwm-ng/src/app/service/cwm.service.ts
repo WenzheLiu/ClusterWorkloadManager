@@ -19,14 +19,14 @@ export class CwmService {
     return this.get('servers');
   }
 
-  workers(host: string, port: string): Observable<Worker[]> {
+  workers(host: string, port: number): Observable<Worker[]> {
     return this.get('workers', {
       host: host,
       port: port
     });
   }
 
-  jobs(host: string, port: string): Observable<JobDetail[]> {
+  jobs(host: string, port: number): Observable<JobDetail[]> {
     return this.get('jobs', {
       host: host,
       port: port

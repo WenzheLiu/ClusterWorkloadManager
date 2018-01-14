@@ -12,7 +12,7 @@ import { JobDetail } from '../../model/job.detail';
 export class JobsComponent implements OnInit {
 
   host: string;
-  port: string;
+  port: number;
   jobDetails$: Observable<JobDetail[]>;
 
   constructor(private route: ActivatedRoute, private cwmService: CwmService) {
