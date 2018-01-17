@@ -5,7 +5,7 @@ import { Pipe, PipeTransform } from '@angular/core';
 })
 export class JoinPipe implements PipeTransform {
 
-  transform (input: any, character: string = ''): any {
+  transform(input: any, character: string = ''): string {
     if (!Array.isArray(input)) {
       return input;
     }
