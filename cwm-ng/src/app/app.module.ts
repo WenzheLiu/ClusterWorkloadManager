@@ -3,7 +3,7 @@ import { NgModule } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { HttpModule } from '@angular/http';
 import { FormsModule } from '@angular/forms';
-import { APP_BASE_HREF } from '@angular/common';
+import { APP_BASE_HREF, LocationStrategy, HashLocationStrategy } from '@angular/common';
 
 import { AppComponent } from './app.component';
 import { ServersComponent } from './ui/servers/servers.component';
@@ -31,7 +31,8 @@ import { DatetimePipe } from './pipes/datetime.pipe';
     RouterModule.forRoot(AppRoutes)
   ],
   providers: [ConfigService, CwmService,
-    { provide: APP_BASE_HREF, useValue: '/' }
+    // { provide: APP_BASE_HREF, useValue: '/' },
+    // { provide: LocationStrategy, useClass: HashLocationStrategy }
   ],
   bootstrap: [AppComponent]
 })

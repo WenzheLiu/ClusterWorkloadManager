@@ -116,23 +116,6 @@ export class ServersComponent implements OnInit {
     console.log('refresh');
     this.cwmService.servers().subscribe(servers => {
       this.servers = servers;
-      this.servers.filter(server => !server.isReachable)
-      .forEach(server => {
-        const serverHostPort = this.serverHostPort(server);
-        if (this.selectedServer.has(serverHostPort)) {
-          this.selectedServer.delete(serverHostPort);
-        }
-      });
-      this.reachableServers().forEach(server => {
-        this.cwmService.workers(server.host, server.port)
-        .subscribe(workers => {
-          this.serverWorkersMap[this.serverHostPort(server)] = workers;
-        });
-        this.cwmService.jobs(server.host, server.port)
-        .subscribe(jobs => {
-          this.serverJobsMap[this.serverHostPort(server)] = jobs;
-        });
-      });
     });
   }
 
